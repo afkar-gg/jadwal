@@ -3,74 +3,65 @@ const path = require('path');
 const fs = require('fs');
 
 const app = express();
-const PORT = 3003;
-const AUTH_TOKEN = 'rahasia123';
+const PORT = 3000;
 
-app.use(express.json());
 app.use(express.static('public'));
+app.use(express.json());
 
-function authMiddleware(req, res, next) {
-  const token = req.headers['authorization'] || req.query.token;
-  if (token === AUTH_TOKEN) {
-    next();
-  } else {
-    res.status(401).send('Unauthorized: Token required');
-  }
-}
-
+// Viewer
 app.get('/jadwal', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/jadwal.html'));
 });
 
-app.get('/edit', authMiddleware, (req, res) => {
+// Editor
+app.get('/edit', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/edit.html'));
 });
 
-app.get('/edit-login', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/login.html'));
-});
-
+// Get schedule
 app.get('/schedule', (req, res) => {
-  const schedule = JSON.parse(fs.readFileSync('./schedule.json', 'utf-8'));
-  res.json(schedule);
+  const data = fs.readFileSync('./public/schedule.json', 'utf-8');
+  res.json(JSON.parse(data));
 });
 
-app.post('/schedule', authMiddleware, (req, res) => {
-  fs.writeFileSync('./schedule.json', JSON.stringify(req.body, null, 2));
-  res.json({ status: 'saved' });
+// Save schedule
+app.post('/schedule', (req, res) => {
+  fs.writeFileSync('./public/schedule.json', JSON.stringify(req.body, null, 2), 'utf-8');
+  res.json({ status: 'ok' });
 });
 
+// Current + Next Subject
 app.get('/current-subject', (req, res) => {
-  const schedule = JSON.parse(fs.readFileSync('./schedule.json', 'utf-8'));
+  const schedule = JSON.parse(fs.readFileSync('./public/schedule.json', 'utf-8'));
+  const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
   const now = new Date();
-  const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
   const day = days[now.getDay()];
-  const timeNow = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+  const timeNow = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-  const hariIni = schedule[day] || {};
-  const times = Object.keys(hariIni).sort();
+  const today = schedule[day] || {};
+  const times = Object.keys(today).sort();
 
-  let current = 'Tidak Ada Pelajaran';
-  let next = '—';
-  let nextTime = '—';
+  let current = "Tidak Ada Pelajaran";
+  let next = null;
+  let nextTime = null;
 
   for (let i = 0; i < times.length; i++) {
     if (timeNow >= times[i]) {
-      current = hariIni[times[i]];
-      next = hariIni[times[i + 1]] || '—';
-      nextTime = times[i + 1] || '—';
+      current = today[times[i]];
+      next = today[times[i + 1]] || null;
+      nextTime = times[i + 1] || null;
     }
   }
 
   res.json({
     subject: current,
     nextSubject: next,
-    nextTime,
+    nextTime: nextTime,
     day,
     time: timeNow
   });
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running at http://localhost:${PORT}`);
+  console.log(`📅 Jadwal app aktif di http://localhost:${PORT}/jadwal`);
 });
