@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Jadwal Hari Ini</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h2>📅 Jadwal Pelajaran</h2>
+    <p id="hari-jam"></p>
+    <p>Pelajaran Saat Ini: <strong id="current">Loading...</strong></p>
+    <p>Pelajaran Berikutnya: <strong id="next">Loading...</strong> pada <span id="next-time"></span></p>
+    <img src="lol.jpeg" alt="emoji" width="100" />
+    <p style="margin-top: 10px;">gabut banget anj</p>
+  </div>
+
+  <script>
+    fetch('/current-subject')
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('hari-jam').textContent = `${data.day}, ${data.time}`;
+        document.getElementById('current').textContent = data.subject;
+        document.getElementById('next').textContent = data.nextSubject;
+        document.getElementById('next-time').textContent = data.nextTime;
+      });
+  </script>
+</body>
+</html>
