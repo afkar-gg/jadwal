@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 
 const app = express();
-const PORT = 3000;
+const PORT = 3003;
 
 app.use(express.static('public'));
 app.use(express.json());
@@ -30,13 +30,15 @@ app.post('/schedule', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-// Current + Next Subject
+// Get current + next subject (WIB synced)
 app.get('/current-subject', (req, res) => {
   const schedule = JSON.parse(fs.readFileSync('./public/schedule.json', 'utf-8'));
+  const now = new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" });
+  const date = new Date(now);
+
   const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-  const now = new Date();
-  const day = days[now.getDay()];
-  const timeNow = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  const day = days[date.getDay()];
+  const timeNow = `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 
   const today = schedule[day] || {};
   const times = Object.keys(today).sort();
