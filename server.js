@@ -9,7 +9,7 @@ app.use(express.static('public'));
 app.use(express.json());
 
 // Viewer
-app.get('/jadwal', (req, res) => {
+app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/jadwal.html'));
 });
 
